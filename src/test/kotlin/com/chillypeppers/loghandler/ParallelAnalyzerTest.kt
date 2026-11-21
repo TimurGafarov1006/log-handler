@@ -64,5 +64,6 @@ class ParallelAnalyzerTest {
         SequentialAnalyzer(listOf(expected)).analyze(path)
         assertEquals(1_500_000L, expected.requests)
         assertEquals(expected, ParallelAnalyzer(4, 7001, 3).analyze(path))
-    }}
+    }
+}
 

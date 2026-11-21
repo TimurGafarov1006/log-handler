@@ -4,7 +4,7 @@
 
 ## Текущее состояние
 
-Реализованы модель `LogEntry`, парсер `LogParser`, чтение батчей `LogReader` и последовательный анализатор `SequentialAnalyzer`. Анализатор передаёт записи существующим `LogHandler`; накопление статистики реализуется в обработчиках участником 3. `LogEngine` остаётся заготовкой параллельной версии, `Main.kt` содержит пример-заглушку.
+Реализованы модель `LogEntry`, парсер `LogParser`, чтение батчей `LogReader` и последовательный анализатор `SequentialAnalyzer`. Анализатор передаёт записи существующим `LogHandler`; накопление статистики реализуется в обработчиках участником 3. `ParallelAnalyzer` обрабатывает батчи в фиксированном пуле с локальной статистикой и ограничением задач. `BenchmarkRunner` запускает эксперименты. `Main.kt` пока содержит пример-заглушку.
 
 ## Чтение и последовательный анализ
 
@@ -113,7 +113,7 @@ SequentialAnalyzer(listOf(handler), batchSize = 10_000).analyze(path)
 ```powershell
 ./gradlew.bat test
 ./gradlew.bat benchmark
-python experiments/plot_results.py experiments/results
+& C:/itis/parallel/ucrt64/bin/python.exe experiments/plot_results.py experiments/results
 ```
 
 Путь и каталог можно задать через `-Pinput=...` и `-Poutput=...`.
@@ -128,3 +128,5 @@ CSV хранит все повторы; отдельный скрипт счит
 создаёт SVG и таблицу. Окружение записывается рядом с результатами.
 Файловый кеш ОС не сбрасывается, порядок конфигураций фиксирован;
 это сравнение прогретых запусков, а не измерение холодного диска.
+
+Фактические измерения и ограничения: [experiments/RESULTS.md](experiments/RESULTS.md).
