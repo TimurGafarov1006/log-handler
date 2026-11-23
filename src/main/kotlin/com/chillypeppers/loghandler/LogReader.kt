@@ -1,35 +1,40 @@
 package com.chillypeppers.loghandler
 
 import java.io.BufferedReader
-import java.time.OffsetDateTime
+import java.io.Closeable
+import java.nio.file.Files
+import java.nio.file.Path
 
 class LogReader(
-    private val reader: BufferedReader
-) {
-    fun readBatch(filePath: String): List<LogEntry> {
-        var count = 0
-        var listOfEntries = ArrayList<LogEntry>()
-        reader.use {
-            while (count++ < BATCH_SIZE) {
-                val line = it.readLine() ?: break
-                listOfEntries.add(convertToEntry(line))
+    private val reader: BufferedReader,
+    private val batchSize: Int = 10_000
+) : Closeable {
+    private var lineNumber = 0L
+
+    init {
+        require(batchSize > 0) { "Batch size must be positive" }
+    }
+
+    fun readBatch(): List<LogEntry> {
+        val entries = ArrayList<LogEntry>()
+        repeat(batchSize) {
+            val line = reader.readLine() ?: return entries
+            lineNumber++
+            try {
+                entries.add(LogParser.parse(line))
+            } catch (error: IllegalArgumentException) {
+                throw IllegalArgumentException("Invalid log at line $lineNumber: ${error.message}", error)
             }
         }
-        return listOfEntries
+        return entries
     }
 
-    private fun convertToEntry(line: String): LogEntry {
-        val parts = line.split(" ")
-        return LogEntry(
-            timestamp = OffsetDateTime.parse(parts[0]),
-            ip = parts[1],
-            method = parts[2],
-            url = parts[3],
-            status = parts[4].toInt(),
-            responseTime = parts[5].toLong()
-        )
+    override fun close() = reader.close()
+
+    companion object {
+        fun open(path: Path, batchSize: Int = 10_000): LogReader {
+            require(batchSize > 0) { "Batch size must be positive" }
+            return LogReader(Files.newBufferedReader(path), batchSize)
+        }
     }
-
-    private val BATCH_SIZE = 10000;
-
 }

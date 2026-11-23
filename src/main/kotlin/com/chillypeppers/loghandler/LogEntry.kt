@@ -1,9 +1,9 @@
 package com.chillypeppers.loghandler
 
-import java.time.OffsetDateTime
+import java.time.LocalDateTime
 
 data class LogEntry(
-    val timestamp: OffsetDateTime,
+    val timestamp: LocalDateTime,
     val ip: String,
     val method: String,
     val url: String,
