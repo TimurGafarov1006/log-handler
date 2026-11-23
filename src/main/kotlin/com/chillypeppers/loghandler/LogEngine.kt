@@ -9,7 +9,7 @@ class LogEngine(
     fun process(filePath: String) {
         val executor = Executors.newCachedThreadPool()
         while (true) {
-            val listOfEntries = logReader.readBatch(filePath)
+            val listOfEntries = logReader.readBatch()
             executor.submit {
                 for (handler in logHandlers) {
                     handler.handle(listOfEntries)
