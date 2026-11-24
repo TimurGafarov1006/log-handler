@@ -21,11 +21,3 @@ kotlin {
 test {
     useJUnitPlatform()
 }
-
-tasks.register('benchmark', JavaExec) {
-    classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'com.chillypeppers.loghandler.BenchmarkRunner'
-    maxHeapSize = '2g'
-    args providers.gradleProperty('input').getOrElse('access_large.log'),
-        providers.gradleProperty('output').getOrElse('experiments/results')
-}
