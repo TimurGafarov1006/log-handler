@@ -7,11 +7,13 @@ import java.util.concurrent.Future
 
 class ParallelAnalyzer(
     private val workers: Int = Runtime.getRuntime().availableProcessors(),
-    private val batchSize: Int = 10_000
+    private val batchSize: Int = 10_000,
+    private val maxInFlight: Int = workers * 2
 ) {
     init {
         require(workers > 0)
         require(batchSize > 0)
+        require(maxInFlight > 0)
     }
 
     fun analyze(path: Path): AnalysisStatistics {
@@ -25,7 +27,7 @@ class ParallelAnalyzer(
                     pending.addLast(executor.submit<AnalysisStatistics> {
                         AnalysisStatistics().apply { handle(entries) }
                     })
-                    if (pending.size >= workers) result.merge(await(pending.removeFirst()))
+                    if (pending.size >= maxInFlight) result.merge(await(pending.removeFirst()))
                 }
                 while (pending.isNotEmpty()) result.merge(await(pending.removeFirst()))
             }
@@ -39,3 +41,4 @@ class ParallelAnalyzer(
         throw error.cause ?: error
     }
 }
+
