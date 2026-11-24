@@ -96,6 +96,7 @@ data class StatisticsSnapshot(
     /** Highest request count first; ties are resolved by the earliest minute. */
     fun peakMinutes(limit: Int = 10): List<Pair<LocalDateTime, MinuteStatistics>> {
         require(limit >= 0) { "Limit must be nonnegative" }
+        if (limit == 0) return emptyList()
         return minutes.entries.sortedWith(
             compareByDescending<Map.Entry<LocalDateTime, MinuteStatistics>> { it.value.requestCount }
                 .thenBy { it.key }
@@ -104,6 +105,7 @@ data class StatisticsSnapshot(
 
     private fun top(counts: Map<String, Long>, limit: Int): List<RequestFrequency> {
         require(limit >= 0) { "Limit must be nonnegative" }
+        if (limit == 0) return emptyList()
         return counts.entries.sortedWith(
             compareByDescending<Map.Entry<String, Long>> { it.value }.thenBy { it.key }
         ).take(limit).map { RequestFrequency(it.key, it.value) }
