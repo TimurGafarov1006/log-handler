@@ -19,5 +19,7 @@ kotlin {
 }
 
 test {
+    // The full-file integration test retains maps for many distinct IPs across 1.5 million records.
+    maxHeapSize = '2g'
     useJUnitPlatform()
 }
