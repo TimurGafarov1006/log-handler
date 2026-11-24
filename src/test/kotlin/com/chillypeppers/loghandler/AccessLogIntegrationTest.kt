@@ -19,18 +19,24 @@ class AccessLogIntegrationTest {
                 )
             }
         }
-        val actual = Summary()
-        val handler = object : LogHandler {
-            override fun handle(entries: List<LogEntry>) {
-                for (entry in entries) {
-                    val minute = "${entry.timestamp.toLocalDate()} ${entry.timestamp.toLocalTime().toString().take(5)}"
-                    actual.add(entry.ip, entry.url, entry.status, entry.responseTime, minute)
-                }
-            }
-        }
-        SequentialAnalyzer(listOf(handler), 7_001).analyze(path)
-        assertEquals(1_500_000L, actual.count)
-        assertEquals(expected, actual)
+        val statistics = StatisticsHandler()
+        SequentialAnalyzer(listOf(statistics), 7_001).analyze(path)
+        val result = statistics.snapshot()
+        assertEquals(1_500_000L, result.requestCount)
+        assertEquals(expected.count, result.requestCount)
+        assertEquals(expected.responseTime.toBigInteger(), result.totalResponseTime)
+        assertEquals(expected.maxResponseTime, result.maxResponseTime)
+        assertEquals(expected.statuses, result.statusCounts)
+        assertEquals(expected.urls, result.urlCounts)
+        assertEquals(expected.ips, result.ipCounts)
+        assertEquals(expected.minutes.mapKeys { (key, _) ->
+            java.time.LocalDateTime.parse(key.replace(' ', 'T'))
+        }.mapValues { (_, value) ->
+            MinuteStatistics(value.count, value.errors, value.responseTime.toBigInteger(), value.maxResponseTime)
+        }, result.minutes)
+        val parallel = StatisticsHandler()
+        LogEngine(listOf(parallel), LogReader.open(path, 7_001)).process(path.toString())
+        assertEquals(result, parallel.snapshot())
     }
 
     private data class Summary(
